@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, prefer_final_fields, sized_box_for_whitespace, unnecessary_string_interpolations, sort_child_properties_last, use_super_parameters, invalid_use_of_protected_member, deprecated_member_use
+// ignore_for_file: file_names, prefer_final_fields, sized_box_for_whitespace, unnecessary_string_interpolations, sort_child_properties_last, use_super_parameters, invalid_use_of_protected_member, deprecated_member_use, avoid_print
 
 import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';

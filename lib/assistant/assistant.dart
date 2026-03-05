@@ -1,9 +1,11 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dataapp/screens/login.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RequestAssistant {
@@ -86,17 +88,13 @@ class RequestAssistant {
       sendRequest(url, method: "DELETE", headers: headers);
 }
 
-
-
-
 class VtuApi {
   final String baseUrl = "http://localhost:2300";
 
   VtuApi();
 
   /// Fetch wallet balance
-  Future<Map<String, dynamic>> checkBalance( String token) async {
-
+  Future<Map<String, dynamic>> checkBalance(String token) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/balance");
 
     final response = await http.get(
@@ -113,6 +111,48 @@ class VtuApi {
       return json.decode(response.body);
     } else {
       throw Exception("Failed to fetch balance: ${response.body}");
+    }
+  }
+
+  /// Register - Get JWT Token
+  Future<Map<String, dynamic>> register(
+    String fullName,
+    String email,
+    String password,
+    String phoneNumber,
+    Uint8List? imageBytes, // changed
+  ) async {
+    final uri = Uri.parse("$baseUrl/api/v2/auth/register");
+
+    var request = http.MultipartRequest("POST", uri);
+
+    request.fields["fullName"] = fullName;
+    request.fields["email"] = email;
+    request.fields["password"] = password;
+    request.fields["phoneNumber"] = phoneNumber;
+    request.fields["userType"] = "user";
+
+    if (imageBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "profilePic", // MUST match backend
+          imageBytes,
+          filename: "profile.jpg",
+          contentType: MediaType.parse("image/jpeg"),
+        ),
+      );
+    }
+
+    var response = await request.send();
+    var responseData = await http.Response.fromStream(response);
+
+    final data = jsonDecode(responseData.body);
+
+    if (response.statusCode == 201 && data["success"] == true) {
+      print("response $data");
+      return data["data"];
+    } else {
+      throw Exception(data["message"] ?? "Registration failed");
     }
   }
 
@@ -134,7 +174,7 @@ class VtuApi {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 && data["success"] == true) {
-      //print("Login successful. Data: $data");
+      print("Login successful. Data: $data");
 
       return data["data"];
     } else {
@@ -169,8 +209,7 @@ class VtuApi {
     }
   }
 
-
-    /// GET USER Transactions
+  /// GET USER Transactions
   Future<Map<String, dynamic>> getUserTransactions(
     String token,
     String userId,
@@ -205,9 +244,8 @@ class VtuApi {
     Get.to(const LoginScreen());
   }
 
-
-  Future<Map<String, dynamic>> purchaseAirtime( String token,  String phone, double amount,  String requestId, String serviceId ) async {
-
+  Future<Map<String, dynamic>> purchaseAirtime(String token, String phone,
+      double amount, String requestId, String serviceId) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/buy-airtime");
 
     final response = await http.post(
@@ -221,16 +259,13 @@ class VtuApi {
         "amount": amount,
         "request_id": requestId,
         "service_id": serviceId
-
       }),
     );
 
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 && data["success"] == true) {
-      
-
-       return data["data"];
+      return data["data"];
     } else {
       Get.snackbar(
         "failed to purchase ",
@@ -241,9 +276,8 @@ class VtuApi {
     }
   }
 
-
-  Future<Map<String, dynamic>> verifyCable( String token, String customerId, String serviceId) async {
-
+  Future<Map<String, dynamic>> verifyCable(
+      String token, String customerId, String serviceId) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/verify-cable");
 
     final response = await http.post(
@@ -252,19 +286,13 @@ class VtuApi {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-
       body: jsonEncode({
         "customer_id": customerId,
         "service_id": serviceId,
-        
-
       }),
-    
-      
     );
 
-
-     final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 && data["success"] == true) {
       // print("Balance fetched successfully: ${response.body}");
@@ -281,8 +309,39 @@ class VtuApi {
   }
 
 
-  Future<Map<String, dynamic>> getTransactions( String token) async {
+   Future<Map<String, dynamic>> verifyOtp(
+      String token, String email, String otp) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/verify-otp");
 
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "email": email,
+        "otp": otp,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["success"] == true) {
+      // print("Balance fetched successfully: ${response.body}");
+
+      return data["data"];
+    } else {
+      Get.snackbar(
+        "failed to verify ",
+        response.body,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      throw Exception("Failed to purchase balance: ${response.body}");
+    }
+  }
+
+  Future<Map<String, dynamic>> getTransactions(String token) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/get-transactions");
 
     final response = await http.get(
@@ -301,6 +360,4 @@ class VtuApi {
       throw Exception("Failed to fetch balance: ${response.body}");
     }
   }
-
 }
-

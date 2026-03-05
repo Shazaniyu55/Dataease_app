@@ -210,7 +210,6 @@ class _WalletSummaryState extends State<WalletSummary> {
                            
                             var tx = appController.userBalance['transactions'][i];
 
-                            bool isCredit = tx['type'] == "credit";
                             bool isSuccess = tx['status'] == "success";
                       Color iconColor = isSuccess ? Colors.green : Colors.red;
                       IconData icon = isSuccess ? Icons.check_circle : Icons.error;

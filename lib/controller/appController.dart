@@ -29,6 +29,7 @@ class AppController extends GetxController {
   var importWalletLoader = false.obs;
 
   var userName = ''.obs;
+  var userId = ''.obs;
   var email = ''.obs;
   var img = ''.obs;
   var acctType = ''.obs;

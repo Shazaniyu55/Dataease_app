@@ -1,8 +1,11 @@
-// ignore_for_file: file_names, use_super_parameters, unnecessary_import, avoid_print, prefer_final_fields, unused_field, strict_top_level_inference
+// ignore_for_file: file_names, use_super_parameters, unnecessary_import, avoid_print, prefer_final_fields, unused_field, strict_top_level_inference, use_build_context_synchronously
 import 'dart:typed_data';
+import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';
 import 'package:dataapp/controller/appController.dart';
 import 'package:dataapp/screens/login.dart';
+import 'package:dataapp/screens/otpScreen.dart';
+import 'package:dataapp/services/tokenServie.dart';
 import 'package:dataapp/services/utilservice.dart';
 import 'package:dataapp/utils/util.dart';
 import 'package:dataapp/widgets/bottomrectangularbtn.dart';
@@ -28,6 +31,7 @@ class _SignupScreenState extends State<SignupScreen> {
   TextEditingController phoneController = TextEditingController();
   TextEditingController passController = TextEditingController();
   TextEditingController confirmPassController = TextEditingController();
+  TextEditingController profileController = TextEditingController();
 
   var fNameError = ''.obs;
   var phoneError = ''.obs;
@@ -41,23 +45,23 @@ class _SignupScreenState extends State<SignupScreen> {
   var checkBox = false.obs;
   bool _isLoading = false;
   Uint8List? _image;
-
+  late final VtuApi _vtuApi = VtuApi();
   final jobRoleCtrl = TextEditingController();
-
 
   @override
   void initState() {
     super.initState();
   }
 
-   selectImage() async {
-    Uint8List im = await pickImage(ImageSource.gallery);
-    // set state because we need to display the image we selected on the circle avatar
+ selectImage() async {
+  Uint8List? im = await pickImage(ImageSource.gallery);
+
+  if (im != null) {
     setState(() {
       _image = im;
     });
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Obx(
@@ -82,8 +86,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         _image != null
                             ? CircleAvatar(
                                 radius: 64,
-                                backgroundImage:
-                                    MemoryImage(_image!),
+                                backgroundImage: MemoryImage(_image!),
                                 backgroundColor: Colors.red,
                               )
                             : const CircleAvatar(
@@ -317,6 +320,34 @@ class _SignupScreenState extends State<SignupScreen> {
       checkBoxErr.value = 'Please accept our terms & conditions.';
     } else {
       //await registerUser();
+      try {
+        appController.registerLoader.value = true;
+        final response = await _vtuApi.register(
+            fNameController.text.trim(),
+            emailController.text.trim(),
+            passController.text.trim(),
+            phoneController.text.trim(),
+            _image);
+
+        final token = response["token"];
+        final userId = response["user"]["_id"];
+
+        await TokenService().saveToken(token);
+        await TokenService().saveUserId(userId);
+        Get.to(()=> OtpScreen(userId: userId,));
+        //changeScreenReplacement(context, const Dashboard());
+
+      } catch (e) {
+        Get.snackbar(
+          "Registration Failed",
+          e.toString().replaceAll("Exception: ", ""),
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } finally {
+        if (mounted) {
+          appController.registerLoader.value = false;
+        }
+      }
     }
   }
 }
