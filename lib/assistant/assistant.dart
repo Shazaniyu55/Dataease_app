@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dataapp/screens/login.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -89,7 +90,7 @@ class RequestAssistant {
 }
 
 class VtuApi {
-  final String baseUrl = "https://dataease-backend.vercel.app";
+  final String baseUrl = "http://localhost:2300";
 
   VtuApi();
 
@@ -149,7 +150,7 @@ class VtuApi {
     final data = jsonDecode(responseData.body);
 
     if (response.statusCode == 201 && data["success"] == true) {
-      print("response $data");
+      //print("response $data");
       return data["data"];
     } else {
       throw Exception(data["message"] ?? "Registration failed");
@@ -174,7 +175,7 @@ class VtuApi {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 && data["success"] == true) {
-      print("Login successful. Data: $data");
+      //print("Login successful. Data: $data");
 
       return data["data"];
     } else {
@@ -271,6 +272,7 @@ class VtuApi {
         "failed to purchase ",
         response.body,
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent, colorText: Colors.white
       );
       throw Exception("Failed to purchase balance: ${response.body}");
     }
@@ -303,6 +305,7 @@ class VtuApi {
         "failed to verify ",
         response.body,
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent, colorText: Colors.white
       );
       throw Exception("Failed to purchase balance: ${response.body}");
     }
@@ -336,6 +339,7 @@ class VtuApi {
         "failed to verify ",
         response.body,
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red, colorText: Colors.white
       );
       throw Exception("Failed to purchase balance: ${response.body}");
     }
@@ -408,6 +412,63 @@ Future<Map<String, dynamic>> getConversation({
     return json.decode(response.body);
   } else {
     throw Exception("Failed to fetch chat: ${response.body}");
+  }
+}
+
+
+Future<Map<String, dynamic>> fundWallet(
+    String token, String amount) async {
+
+  final url = Uri.parse("$baseUrl/api/v2/wallet/fund-wallet");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode({
+      "amount": amount,
+    }),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200 && data["status"] == true) {
+    return data["data"]; // contains authorization_url, reference
+  } else {
+    Get.snackbar(
+      "Funding Failed",
+      data["message"] ?? "Something went wrong",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent, colorText: Colors.white
+    );
+    throw Exception("Failed to fund wallet");
+  }
+}
+
+
+
+Future<Map<String, dynamic>> verifyPayment(
+    String token, String reference) async {
+
+  final url =
+      Uri.parse("$baseUrl/api/v2/wallet/verify-payment/$reference");
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200) {
+    return data;
+  } else {
+    throw Exception(data["message"] ?? "Verification failed");
   }
 }
 

@@ -3,6 +3,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,15 +71,14 @@ class UtilService {
     return '0';
   }
 
-//   void launchURL(BuildContext context, url) async {
-//     try {
-//       await await launchUrl(
-//           Uri.parse(url),
-//           mode: LaunchMode.inAppBrowserView,
-// );
-//     } catch (e) {
-//       // An exception is thrown if browser app is not installed on Android device.
-//       debugPrint(e.toString());
-//     }
-//   }
+  void launchURL( url) async {
+    try {
+       await launchUrl(
+          Uri.parse(url)
+);
+    } catch (e) {
+      // An exception is thrown if browser app is not installed on Android device.
+      debugPrint(e.toString());
+    }
+  }
 }

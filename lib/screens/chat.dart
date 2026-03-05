@@ -86,7 +86,7 @@ class _SingleChatState extends State<SingleChat> {
 
       await loadMessages();
     } catch (e) {
-      print(e);
+      //print(e);
     }
   }
 
@@ -113,7 +113,7 @@ class _SingleChatState extends State<SingleChat> {
       isLoading = false;
     });
   } catch (e) {
-    print("Error loading chat: $e");
+    //print("Error loading chat: $e");
   }
 }
 

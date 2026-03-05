@@ -342,6 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
           "Registration Failed",
           e.toString().replaceAll("Exception: ", ""),
           snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent, colorText: Colors.white
         );
       } finally {
         if (mounted) {

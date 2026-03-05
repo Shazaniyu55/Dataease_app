@@ -2,10 +2,9 @@
 import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';
 import 'package:dataapp/controller/appController.dart';
-import 'package:dataapp/helper/navigator.dart';
-import 'package:dataapp/screens/forgotpass.dart';
 import 'package:dataapp/screens/home/dashboard.dart';
 import 'package:dataapp/screens/signup.dart';
+import 'package:dataapp/screens/forgotpass.dart';
 import 'package:dataapp/services/tokenServie.dart';
 import 'package:dataapp/services/utilservice.dart';
 import 'package:dataapp/widgets/commonwidget.dart';
@@ -113,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     InkWell(
                       onTap: () {
-                        Get.to(const ForgotPassword());
+                        Get.to(()=> ForgotPassword());
                       },
                       child: Text(
                         "forgot password?",
@@ -233,12 +232,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await TokenService().saveToken(token);
         await TokenService().saveUserId(userId);
-        changeScreenReplacement(context, const Dashboard());
+        Get.to(() =>  Dashboard());
       } catch (e) {
         Get.snackbar(
           "Login Failed",
           e.toString().replaceAll("Exception: ", ""),
           snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent, colorText: Colors.white
         );
       } finally {
         if (mounted) {

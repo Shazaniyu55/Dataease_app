@@ -27,6 +27,7 @@ class AppController extends GetxController {
   var changePassLoader = false.obs;
   var createNewWalletLoader = false.obs;
   var importWalletLoader = false.obs;
+  var paymentReference = ''.obs;
 
   var userName = ''.obs;
   var userId = ''.obs;

@@ -4,6 +4,10 @@ import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';
 import 'package:dataapp/controller/appController.dart';
 import 'package:dataapp/model/walletBalace.dart';
+import 'package:dataapp/services/tokenServie.dart';
+import 'package:dataapp/services/utilservice.dart';
+import 'package:dataapp/widgets/bottomrectangularbtn.dart';
+import 'package:dataapp/widgets/inputField.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
@@ -22,77 +26,53 @@ class CommonWidgets {
   TextEditingController accountNameController = TextEditingController();
   TextEditingController accountNumController = TextEditingController();
   TextEditingController amountFiatController = TextEditingController();
+final VtuApi vtuApi = VtuApi();
+final UtilService _utilService = UtilService();
 
-  void handlePayment() async {
-    // Define the API URL
-    String url = "http://127.0.0.1:8000/flutterwave/api/wallet_top_up/";
 
-    // Define the request body as a Map
-    Map<String, dynamic> requestBody = {
-      "tx_ref": "string",
-      "amount": "30",
-      "currency": "NGN",
-      "email": "shazaniyu@gmail.com",
-      "phone_number": "+2349074235666",
-      "name": "gbadamosi shazaniyu",
-      "firebase_token": "string",
-      "user_id": "string"
-    };
+Future<void> handlePayment(String token, String amount) async {
+  try {
+    final result = await vtuApi.fundWallet(token, amount);
 
-    // Define any additional headers if needed
-    Map<String, String> headers = {
-      'Authorization':
-          'X-CSRFTOKEN: fC5GH8v29dKPlaNsWJEaswbBt5duC3V1p9kBNbAe7VnmsYEMaq8Kl59iQqoQrxvG',
-    };
+    final authorizationUrl = result["authorization_url"];
+    final reference = result["reference"];
+      AppController appController = Get.find<AppController>();
 
-    var response = await RequestAssistant.post(url, requestBody,
-        headers: headers);
-    print(response);
+
+    // Save reference for verification later
+    print("Reference: $reference");
+    appController.paymentReference.value = reference;
+
+      
+    _utilService.launchURL(authorizationUrl);
+
+      Get.defaultDialog(
+      title: "Verify Payment",
+      middleText: "Click below after completing payment",
+      actions: [
+        ElevatedButton(
+          onPressed: () async {
+            try {
+              final verification = await vtuApi.verifyPayment(token, reference);
+              if (verification["data"]["status"] == "success") {
+                Get.back(); // close dialog
+                Get.snackbar("Success", "Wallet funded successfully", backgroundColor: Colors.green, colorText: Colors.white);
+              } else {
+                Get.snackbar("Failed", verification["data"]["message"] ?? "Payment not verified");
+              }
+            } catch (e) {
+              Get.snackbar("Error", e.toString());
+            }
+          },
+          child: const Text("I Have Paid"),
+        )
+      ],
+    );
+
+  } catch (e) {
+    Get.snackbar("Error", e.toString());
   }
-
-  // Future<void> handlePayment(BuildContext context) async {
-  //   final Customer customer = Customer(
-  //     name: "shazaniyu gbadamosi",
-  //     phoneNumber: "09074235666",
-  //     email: "shazaniyu@gmail.com",
-  //   );
-
-  //   final Flutterwave flutterwave = Flutterwave(
-  //     context: context,
-  //     publicKey:
-  //         "FLWPUBK_TEST-c3b9f15b0070b4151d09f1b7920000fa-X", // Replace with your Flutterwave public key
-  //     currency: "NGN",
-  //     txRef: DateTime.now().millisecondsSinceEpoch.toString(),
-  //     amount: "1000", // amount to charge
-  //     customer: customer,
-  //     paymentOptions: "card, payattitude, barter",
-  //     customization: Customization(title: "Test Payment"),
-  //     isTestMode: true,
-  //     redirectUrl: 'https://www.adaintech.com/',
-  //   );
-
-  //   try {
-  //     final ChargeResponse response = await flutterwave.charge();
-  //     if (response != null) {
-  //       if (response.status == "success") {
-  //         // Payment was successful
-  //         print("Transaction successful");
-  //         // Handle successful payment here
-  //       } else {
-  //         // Payment failed
-  //         print("Transaction failed");
-  //         // Handle failed payment here
-  //       }
-  //     } else {
-  //       // Payment was cancelled
-  //       print("Transaction cancelled");
-  //       // Handle cancelled payment here
-  //     }
-  //   } catch (error) {
-  //     print("Error: $error");
-  //     // Handle error here
-  //   }
-  // }
+}
 
   static Widget showErrorMessage(String errorMessage) {
     return Padding(
@@ -321,7 +301,8 @@ class CommonWidgets {
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   InkWell(
                     onTap: () {
-                      handlePayment();
+                      Get.back(); // close method selector
+                      showPaystackAmountPopup(context);
                     },
                     child: Container(
                       height: 100,
@@ -381,7 +362,7 @@ class CommonWidgets {
                             height: 5,
                           ),
                           Text(
-                            "Monnify",
+                            "Monni",
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 color: inputFieldTextColor.value,
@@ -440,4 +421,63 @@ class CommonWidgets {
       ),
     );
   }
+
+
+
+
+void showPaystackAmountPopup(BuildContext context) {
+  final amountController = TextEditingController();
+  final appController = Get.find<AppController>();
+  var amountError = ''.obs;
+
+  Get.dialog(
+    AlertDialog(
+      title: const Text("Fund Wallet"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InputFieldsWithSeparateIcon(
+            headerText: "Amount",
+            hintText: "Amount",
+            svg: 'wallet',
+            onChange: (val) {
+              if (val != null && val != '') {
+                amountError.value = '';
+              }
+            },
+            textController: amountController,
+            hasHeader: true,
+          ),
+          const SizedBox(height: 15),
+        ],
+      ),
+      actions: [
+        BottomRectangularBtn(
+          onTapFunc: () async{
+            final amount = amountController.text.trim();
+
+            if (amount.isEmpty) {
+              Get.snackbar("Error", "Amount is required");
+              return;
+            }
+            final token = await TokenService().getToken();
+             if (token == null) {
+                  Get.snackbar("Error", "User not authenticated");
+                  return;
+                }
+
+            Get.back();
+            await handlePayment(token, amount);
+          },
+          btnTitle: "Fund Wallet",
+          color: primaryColor.value,
+          loadingText: 'Funding account...',
+          isLoading: appController.registerLoader.value,
+        ),
+      ],
+    ),
+  );
 }
+
+}
+
