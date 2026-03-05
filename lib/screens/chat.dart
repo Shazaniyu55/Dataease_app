@@ -1,8 +1,9 @@
 // ignore_for_file: file_names, sort_child_properties_last, deprecated_member_use
 
-
+import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';
 import 'package:dataapp/controller/appController.dart';
+import 'package:dataapp/services/tokenServie.dart';
 import 'package:dataapp/widgets/inputField.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,41 +16,107 @@ class SingleChat extends StatefulWidget {
 }
 
 class _SingleChatState extends State<SingleChat> {
-  final AppController userController = Get.put(AppController());
   final TextEditingController messageController = TextEditingController();
+  late TokenService tokenService;
+  late VtuApi vtuApi;
+
+  AppController appController = Get.find<AppController>();
+
+  late String token;
+  late String userId;
+
+//Replace with your real admin ID from database
+  String adminId = "69a75697c739ee5c47525ef4";
+
   List<Map<String, dynamic>> messagesList = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-
-    messagesList.add({
-      "text":
-          "Welcome John, welcome to DataEase Customer Chat Service. How may we help you?",
-      "isMe": false,
-    });
-
-    // Example user messages (optional)
-    messagesList.add({
-      "text": "I want to make a complaint.",
-      "isMe": true,
-    });
-
-    messagesList.add({
-      "text": "That's great! what service are you having issues with?",
-      "isMe": false,
-    });
+    tokenService = TokenService();
+    vtuApi = VtuApi();
+    _initializeChat();
   }
 
-  void sendMessage() {
-    String message = messageController.text.trim();
-    if (message.isNotEmpty) {
-      setState(() {
-        messagesList.add({"text": message, "isMe": true});
+ void sendMessage() async {
+  String message = messageController.text.trim();
+  if (message.isEmpty) return;
+
+  messageController.clear();
+
+  try {
+    await vtuApi.sendMessage(
+      token: token,
+      senderId: userId,
+      receiverId: adminId,
+      message: message,
+    );
+
+    setState(() {
+      messagesList.add({
+        "text": message,
+        "isMe": true,
       });
-      messageController.clear();
+    });
+
+  } catch (e) {
+    Get.snackbar(
+      "Error",
+      e.toString().replaceAll("Exception: ", ""),
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+}
+
+  String generateConversationId(String userId, String adminId) {
+    if (userId.compareTo(adminId) < 0) {
+      return userId + adminId;
+    } else {
+      return adminId + userId;
     }
   }
+
+  Future<void> _initializeChat() async {
+    try {
+      token = await tokenService.getToken() ?? '';
+      userId = await tokenService.getUserId() ?? '';
+
+      if (token.isEmpty || userId.isEmpty) return;
+
+      await loadMessages();
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> loadMessages() async {
+  try {
+    String conversationId =
+        generateConversationId(userId, adminId);
+
+    final response = await vtuApi.getConversation(
+      token: token,
+      conversationId: conversationId,
+    );
+
+    List chats = response["data"];
+
+    setState(() {
+      messagesList = chats.map<Map<String, dynamic>>((chat) {
+        return {
+          "text": chat["message"],
+          "isMe": chat["senderId"] == userId,
+        };
+      }).toList();
+
+      isLoading = false;
+    });
+  } catch (e) {
+    print("Error loading chat: $e");
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +140,8 @@ class _SingleChatState extends State<SingleChat> {
                   const SizedBox(width: 10),
                   const CircleAvatar(
                     radius: 20,
-                    backgroundImage:
-                        NetworkImage("https://res.cloudinary.com/damufjozr/image/upload/v1725521798/ck4g8mgwfmkcvajr58ki.png"),
+                    backgroundImage: NetworkImage(
+                        "https://res.cloudinary.com/damufjozr/image/upload/v1725521798/ck4g8mgwfmkcvajr58ki.png"),
                   ),
                   const SizedBox(width: 10),
                   Column(
@@ -82,7 +149,7 @@ class _SingleChatState extends State<SingleChat> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "DataEase",
+                        "DataEase Customer Service",
                         style: TextStyle(
                           color: inputFieldTextColor.value,
                           fontSize: 20,
@@ -104,68 +171,68 @@ class _SingleChatState extends State<SingleChat> {
 
             // Chat Messages
             Expanded(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: ListView.builder(
-                  itemCount: messagesList.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    bool isMe = messagesList[index]['isMe'] == true;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment:
-                            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                        children: [
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: Get.width * 0.75,
-                              minWidth: Get.width * 0.1,
-                            ),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(15),
-                                  topRight: const Radius.circular(15),
-                                  bottomLeft: isMe
-                                      ? const Radius.circular(15)
-                                      : const Radius.circular(0),
-                                  bottomRight: isMe
-                                      ? const Radius.circular(0)
-                                      : const Radius.circular(15),
-                                ),
-                                color: isMe
-                                    ? primaryColor.value
-                                    : chatBoxBg.value,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 8),
-                                child: Text(
-                                  messagesList[index]['text'],
-                                  style: TextStyle(
-                                    color:
-                                        isMe ? lightColor : placeholderColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                    fontFamily: "sfpro",
-                                  ),
-                                ),
-                              ),
+  child: isLoading
+      ? const Center(child: CircularProgressIndicator())
+      : Container(
+          width: MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: ListView.builder(
+            itemCount: messagesList.length,
+            itemBuilder: (context, index) {
+              bool isMe = messagesList[index]['isMe'] == true;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment:
+                      isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: Get.width * 0.75,
+                      ),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(15),
+                            topRight: const Radius.circular(15),
+                            bottomLeft: isMe
+                                ? const Radius.circular(15)
+                                : const Radius.circular(0),
+                            bottomRight: isMe
+                                ? const Radius.circular(0)
+                                : const Radius.circular(15),
+                          ),
+                          color: isMe
+                              ? primaryColor.value
+                              : chatBoxBg.value,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 8),
+                          child: Text(
+                            messagesList[index]['text'],
+                            style: TextStyle(
+                              color: isMe
+                                  ? lightColor
+                                  : placeholderColor,
+                              fontSize: 14,
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ),
-            ),
+              );
+            },
+          ),
+        ),
+),
 
             // Message Input
             Container(
-              padding:
-                  const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

@@ -360,4 +360,55 @@ class VtuApi {
       throw Exception("Failed to fetch balance: ${response.body}");
     }
   }
+
+  Future<Map<String, dynamic>> sendMessage({
+  required String token,
+  required String senderId,
+  required String receiverId,
+  required String message,
+}) async {
+  final url = Uri.parse("$baseUrl/api/v2/chat/send");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+    body: json.encode({
+      "senderId": senderId,
+      "receiverId": receiverId,
+      "message": message,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    return json.decode(response.body);
+  } else {
+    throw Exception("Failed to send message: ${response.body}");
+  }
+}
+
+Future<Map<String, dynamic>> getConversation({
+  required String token,
+  required String conversationId,
+}) async {
+  final url =
+      Uri.parse("$baseUrl/api/v2/chat/conversation/$conversationId");
+
+  final response = await http.get(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception("Failed to fetch chat: ${response.body}");
+  }
+}
+
 }
