@@ -89,7 +89,7 @@ class RequestAssistant {
 }
 
 class VtuApi {
-  final String baseUrl = "http://localhost:2300";
+  final String baseUrl = "https://dataease-backend.vercel.app";
 
   VtuApi();
 
