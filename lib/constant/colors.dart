@@ -6,7 +6,7 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 var primaryColor = const Color.fromARGB(255, 66, 99, 231).obs;
 var primaryBackgroundColor = const Color(0xFFFFFFFF).obs;
 var dividerColor = const Color(0xFFF2F2F2).obs;
-var headingColor = const Color(0xFF030319).obs;
+var headingColor = const Color.fromRGBO(3, 3, 25, 1).obs;
 var labelColor = const Color(0xFF8F92A1).obs;
 Color placeholderColor = const Color(0xff8F92A1);
 var inputFieldTextColor = const Color(0xFF0F001C).obs;

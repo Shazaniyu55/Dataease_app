@@ -12,6 +12,7 @@ import 'package:dataapp/screens/data.dart';
 import 'package:dataapp/screens/electricity.dart';
 import 'package:dataapp/screens/listvendors.dart';
 import 'package:dataapp/screens/profile.dart';
+import 'package:dataapp/screens/setting.dart';
 import 'package:dataapp/services/tokenServie.dart';
 import 'package:dataapp/widgets/commonwidget.dart';
 import 'package:flutter/material.dart';
@@ -111,6 +112,8 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    Theme.of(context);
+    
     return Container(
       decoration: BoxDecoration(
         gradient: appBgGradient,
@@ -125,7 +128,7 @@ class _DashboardState extends State<Dashboard> {
             backgroundColor: primaryColor.value,
             systemOverlayStyle: SystemUiOverlayStyle(
               // Status bar color
-              statusBarColor: primaryColor.value,
+              statusBarColor: Theme.of(context).primaryColor,
               // Status bar brightness (optional)
               statusBarIconBrightness: Brightness.light,
               statusBarBrightness: Brightness.dark,
@@ -183,7 +186,7 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   title: const Text("Settings"),
                   onTap: () {
-                    Get.to(const Profile());
+                    Get.to(const SettingsPage2());
                   },
                 ),
                 const SizedBox(
