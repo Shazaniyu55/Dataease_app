@@ -70,7 +70,7 @@ Future<void> handlePayment(String token, String amount) async {
     );
 
   } catch (e) {
-    Get.snackbar("Error", e.toString());
+    Get.snackbar("Error", e.toString(), backgroundColor: Colors.redAccent, colorText: Colors.white);
   }
 }
 
