@@ -161,7 +161,7 @@ class _OtpScreenState extends State<OtpScreen> {
          await _vtuApi.verifyOtp(
             token!, emailController.text.trim(), otpController.text.trim());
             
-        Get.snackbar("Registration success", "");
+        Get.snackbar("Registration success","", snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
 
         await TokenService().saveToken(token);
         Get.to(() => Dashboard());
