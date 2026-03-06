@@ -157,6 +157,74 @@ class VtuApi {
     }
   }
 
+Future<Map<String, dynamic>> kyc(
+  String token,
+ 
+  Uint8List idFront,
+  Uint8List idBack,
+  Uint8List selfie, {
+  Uint8List? profilePic, // optional
+}) async {
+  final uri = Uri.parse("$baseUrl/api/v2/kyc/create-kyc");
+
+  var request = http.MultipartRequest("POST", uri);
+  // Add Authorization header
+  request.headers['Authorization'] = 'Bearer $token';
+  request.headers['Accept'] = 'application/json';
+
+  // Add required files
+  request.files.add(
+    http.MultipartFile.fromBytes(
+      "idFront", // MUST match backend field
+      idFront,
+      filename: "idFront.jpg",
+      contentType: MediaType("image", "jpeg"),
+    ),
+  );
+
+  request.files.add(
+    http.MultipartFile.fromBytes(
+      "idBack",
+      idBack,
+      filename: "idBack.jpg",
+      contentType: MediaType("image", "jpeg"),
+    ),
+  );
+
+  request.files.add(
+    http.MultipartFile.fromBytes(
+      "selfie",
+      selfie,
+      filename: "selfie.jpg",
+      contentType: MediaType("image", "jpeg"),
+    ),
+  );
+
+  // Optional profile picture
+  if (profilePic != null) {
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        "profilePic",
+        profilePic,
+        filename: "profile.jpg",
+        contentType: MediaType("image", "jpeg"),
+      ),
+    );
+  }
+
+  // Send request
+  var response = await request.send();
+  var responseData = await http.Response.fromStream(response);
+  final data = jsonDecode(responseData.body);
+
+  if (response.statusCode == 201 && data["success"] == true) {
+    return data["data"];
+  } else {
+    throw Exception(data["message"] ?? "KYC submission failed");
+  }
+}
+
+ 
   /// LOGIN - Get JWT Token
   Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/login");

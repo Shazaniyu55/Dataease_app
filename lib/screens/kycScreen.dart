@@ -1,6 +1,10 @@
 // ignore_for_file: file_names, deprecated_member_use, use_super_parameters, sized_box_for_whitespace
 
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:dataapp/assistant/assistant.dart';
+import 'package:dataapp/services/tokenServie.dart';
+import 'package:dataapp/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,21 +18,32 @@ class KycScreen extends StatefulWidget {
 }
 
 class _KycScreenState extends State<KycScreen> {
-  File? idFront;
-  File? idBack;
-  File? selfie;
+  Uint8List? idFront;
+  Uint8List? idBack;
+  Uint8List? selfie;
+  late TokenService tokenService;
+  int currentMax = 1;
+  late VtuApi vtuApi;
 
   final picker = ImagePicker();
 
-  Future<void> _pickImage(String type) async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+  Future<void> selectImage(String type) async {
+    Uint8List? im = await pickImage(ImageSource.gallery);
+
+    if (im != null) {
       setState(() {
-        if (type == "idFront") idFront = File(pickedFile.path);
-        if (type == "idBack") idBack = File(pickedFile.path);
-        if (type == "selfie") selfie = File(pickedFile.path);
+        if (type == "idFront") idFront = im;
+        if (type == "idBack") idBack = im;
+        if (type == "selfie") selfie = im;
       });
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    tokenService = TokenService();
+    vtuApi = VtuApi();
   }
 
   @override
@@ -49,7 +64,9 @@ class _KycScreenState extends State<KycScreen> {
             const Text(
               "Complete Your KYC",
               style: TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
             ),
             const SizedBox(height: 10),
             Text(
@@ -62,11 +79,11 @@ class _KycScreenState extends State<KycScreen> {
             const SizedBox(height: 30),
 
             // 🔹 UPLOAD CARDS
-            _buildUploadCard("ID Front", idFront, () => _pickImage("idFront")),
+            _buildUploadCard("ID Front", idFront, () => selectImage("idFront")),
             const SizedBox(height: 20),
-            _buildUploadCard("ID Back", idBack, () => _pickImage("idBack")),
+            _buildUploadCard("ID Back", idBack, () => selectImage("idBack")),
             const SizedBox(height: 20),
-            _buildUploadCard("Selfie", selfie, () => _pickImage("selfie")),
+            _buildUploadCard("Selfie", selfie, () => selectImage("selfie")),
             const SizedBox(height: 30),
 
             // 🔹 SUBMIT BUTTON
@@ -79,7 +96,7 @@ class _KycScreenState extends State<KycScreen> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15)),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   if (idFront == null || idBack == null || selfie == null) {
                     Get.snackbar(
                       "Error",
@@ -89,12 +106,30 @@ class _KycScreenState extends State<KycScreen> {
                     );
                     return;
                   }
-                  Get.snackbar(
-                    "Success",
-                    "KYC submitted successfully",
-                    backgroundColor: Colors.green,
-                    colorText: Colors.white,
-                  );
+
+                  try {
+                    Get.snackbar("Info", "Submitting KYC...",
+                        backgroundColor: Colors.blue);
+                   final token = await tokenService.getToken();
+                    var result =
+                        await vtuApi.kyc(token!, idFront!, idBack!, selfie!);
+
+                    Get.snackbar(
+                      "Success",
+                      "KYC submitted successfully",
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                    );
+
+                    print("KYC Result: $result");
+                  } catch (e) {
+                    Get.snackbar(
+                      "Error",
+                      e.toString(),
+                      backgroundColor: Colors.redAccent,
+                      colorText: Colors.white,
+                    );
+                  }
                 },
                 child: const Text(
                   "Submit KYC",
@@ -108,7 +143,7 @@ class _KycScreenState extends State<KycScreen> {
     );
   }
 
-  Widget _buildUploadCard(String title, File? file, VoidCallback onTap) {
+  Widget _buildUploadCard(String title, Uint8List? file, VoidCallback onTap) {
     bool isUploaded = file != null;
     return GestureDetector(
       onTap: onTap,
