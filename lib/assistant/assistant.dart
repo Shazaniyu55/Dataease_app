@@ -90,7 +90,7 @@ class RequestAssistant {
 }
 
 class VtuApi {
-  final String baseUrl = "https://dataease-backend.vercel.app";
+  final String baseUrl = "http://localhost:2300";
 
   VtuApi();
 
@@ -540,4 +540,68 @@ Future<Map<String, dynamic>> verifyPayment(
   }
 }
 
+
+  /// Fetch wallet balance
+  Future<Map<String, dynamic>> getDataVariations(String token, String serviceId) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/data-variations?service_id=$serviceId");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // print("Balance fetched successfully: ${response.body}");
+
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to fetch dataplans: ${response.body}");
+    }
+  }
+
+
+
+   Future<Map<String, dynamic>> buyData(
+  String token,
+  String requestId,
+  String phone,
+  String amount,
+  String serviceId,
+) async {
+
+  final url = Uri.parse("$baseUrl/api/v2/auth/buy-data");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode({
+      "request_id": requestId,
+      "phone": phone,
+      "amount": amount,
+      "service_id": serviceId.toLowerCase()
+    }),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200 && data["success"] == true) {
+    return data;
+  } else {
+    Get.snackbar(
+      "Failed",
+      data["message"] ?? "Something went wrong",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+
+    throw Exception(data["message"]);
+  }
+}
 }
