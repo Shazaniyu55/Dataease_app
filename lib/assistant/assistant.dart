@@ -90,7 +90,7 @@ class RequestAssistant {
 }
 
 class VtuApi {
-  final String baseUrl = "https://dataease-backend.vercel.app";
+  final String baseUrl = "http://localhost:2300";
 
   VtuApi();
 
@@ -157,74 +157,72 @@ class VtuApi {
     }
   }
 
-Future<Map<String, dynamic>> kyc(
-  String token,
- 
-  Uint8List idFront,
-  Uint8List idBack,
-  Uint8List selfie, {
-  Uint8List? profilePic, // optional
-}) async {
-  final uri = Uri.parse("$baseUrl/api/v2/kyc/create-kyc");
+  Future<Map<String, dynamic>> kyc(
+    String token,
+    Uint8List idFront,
+    Uint8List idBack,
+    Uint8List selfie, {
+    Uint8List? profilePic, // optional
+  }) async {
+    final uri = Uri.parse("$baseUrl/api/v2/kyc/create-kyc");
 
-  var request = http.MultipartRequest("POST", uri);
-  // Add Authorization header
-  request.headers['Authorization'] = 'Bearer $token';
-  request.headers['Accept'] = 'application/json';
+    var request = http.MultipartRequest("POST", uri);
+    // Add Authorization header
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
 
-  // Add required files
-  request.files.add(
-    http.MultipartFile.fromBytes(
-      "idFront", // MUST match backend field
-      idFront,
-      filename: "idFront.jpg",
-      contentType: MediaType("image", "jpeg"),
-    ),
-  );
-
-  request.files.add(
-    http.MultipartFile.fromBytes(
-      "idBack",
-      idBack,
-      filename: "idBack.jpg",
-      contentType: MediaType("image", "jpeg"),
-    ),
-  );
-
-  request.files.add(
-    http.MultipartFile.fromBytes(
-      "selfie",
-      selfie,
-      filename: "selfie.jpg",
-      contentType: MediaType("image", "jpeg"),
-    ),
-  );
-
-  // Optional profile picture
-  if (profilePic != null) {
+    // Add required files
     request.files.add(
       http.MultipartFile.fromBytes(
-        "profilePic",
-        profilePic,
-        filename: "profile.jpg",
+        "idFront", // MUST match backend field
+        idFront,
+        filename: "idFront.jpg",
         contentType: MediaType("image", "jpeg"),
       ),
     );
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        "idBack",
+        idBack,
+        filename: "idBack.jpg",
+        contentType: MediaType("image", "jpeg"),
+      ),
+    );
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        "selfie",
+        selfie,
+        filename: "selfie.jpg",
+        contentType: MediaType("image", "jpeg"),
+      ),
+    );
+
+    // Optional profile picture
+    if (profilePic != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "profilePic",
+          profilePic,
+          filename: "profile.jpg",
+          contentType: MediaType("image", "jpeg"),
+        ),
+      );
+    }
+
+    // Send request
+    var response = await request.send();
+    var responseData = await http.Response.fromStream(response);
+    final data = jsonDecode(responseData.body);
+
+    if (response.statusCode == 201 && data["success"] == true) {
+      return data["data"];
+    } else {
+      throw Exception(data["message"] ?? "KYC submission failed");
+    }
   }
 
-  // Send request
-  var response = await request.send();
-  var responseData = await http.Response.fromStream(response);
-  final data = jsonDecode(responseData.body);
-
-  if (response.statusCode == 201 && data["success"] == true) {
-    return data["data"];
-  } else {
-    throw Exception(data["message"] ?? "KYC submission failed");
-  }
-}
-
- 
   /// LOGIN - Get JWT Token
   Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/login");
@@ -336,12 +334,10 @@ Future<Map<String, dynamic>> kyc(
     if (response.statusCode == 200 && data["success"] == true) {
       return data["data"];
     } else {
-      Get.snackbar(
-        "failed to purchase ",
-        response.body,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent, colorText: Colors.white
-      );
+      Get.snackbar("failed to purchase ", response.body,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white);
       throw Exception("Failed to purchase balance: ${response.body}");
     }
   }
@@ -369,18 +365,15 @@ Future<Map<String, dynamic>> kyc(
 
       return data["data"];
     } else {
-      Get.snackbar(
-        "failed to verify ",
-        response.body,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent, colorText: Colors.white
-      );
+      Get.snackbar("failed to verify ", response.body,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white);
       throw Exception("Failed to purchase balance: ${response.body}");
     }
   }
 
-
-   Future<Map<String, dynamic>> verifyOtp(
+  Future<Map<String, dynamic>> verifyOtp(
       String token, String email, String otp) async {
     final url = Uri.parse("$baseUrl/api/v2/auth/verify-otp");
 
@@ -403,12 +396,10 @@ Future<Map<String, dynamic>> kyc(
 
       return data["data"];
     } else {
-      Get.snackbar(
-        "failed to verify ",
-        response.body,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red, colorText: Colors.white
-      );
+      Get.snackbar("failed to verify ", response.body,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
       throw Exception("Failed to purchase balance: ${response.body}");
     }
   }
@@ -434,116 +425,107 @@ Future<Map<String, dynamic>> kyc(
   }
 
   Future<Map<String, dynamic>> sendMessage({
-  required String token,
-  required String senderId,
-  required String receiverId,
-  required String message,
-}) async {
-  final url = Uri.parse("$baseUrl/api/v2/chat/send");
+    required String token,
+    required String senderId,
+    required String receiverId,
+    required String message,
+  }) async {
+    final url = Uri.parse("$baseUrl/api/v2/chat/send");
 
-  final response = await http.post(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-    body: json.encode({
-      "senderId": senderId,
-      "receiverId": receiverId,
-      "message": message,
-    }),
-  );
-
-  if (response.statusCode == 201) {
-    return json.decode(response.body);
-  } else {
-    throw Exception("Failed to send message: ${response.body}");
-  }
-}
-
-Future<Map<String, dynamic>> getConversation({
-  required String token,
-  required String conversationId,
-}) async {
-  final url =
-      Uri.parse("$baseUrl/api/v2/chat/conversation/$conversationId");
-
-  final response = await http.get(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-  );
-
-  if (response.statusCode == 200) {
-    return json.decode(response.body);
-  } else {
-    throw Exception("Failed to fetch chat: ${response.body}");
-  }
-}
-
-
-Future<Map<String, dynamic>> fundWallet(
-    String token, String amount) async {
-
-  final url = Uri.parse("$baseUrl/api/v2/wallet/fund-wallet");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-    body: jsonEncode({
-      "amount": amount,
-    }),
-  );
-
-  final data = jsonDecode(response.body);
-
-  if (response.statusCode == 200 && data["status"] == true) {
-    return data["data"]; // contains authorization_url, reference
-  } else {
-    Get.snackbar(
-      "Funding Failed",
-      data["message"] ?? "Something went wrong",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.redAccent, colorText: Colors.white
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: json.encode({
+        "senderId": senderId,
+        "receiverId": receiverId,
+        "message": message,
+      }),
     );
-    throw Exception("Failed to fund wallet");
+
+    if (response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to send message: ${response.body}");
+    }
   }
-}
 
+  Future<Map<String, dynamic>> getConversation({
+    required String token,
+    required String conversationId,
+  }) async {
+    final url = Uri.parse("$baseUrl/api/v2/chat/conversation/$conversationId");
 
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
 
-Future<Map<String, dynamic>> verifyPayment(
-    String token, String reference) async {
-
-  final url =
-      Uri.parse("$baseUrl/api/v2/wallet/verify-payment/$reference");
-
-  final response = await http.get(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-  );
-
-  final data = jsonDecode(response.body);
-
-  if (response.statusCode == 200) {
-    return data;
-  } else {
-    throw Exception(data["message"] ?? "Verification failed");
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to fetch chat: ${response.body}");
+    }
   }
-}
 
+  Future<Map<String, dynamic>> fundWallet(String token, String amount) async {
+    final url = Uri.parse("$baseUrl/api/v2/wallet/fund-wallet");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "amount": amount,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["status"] == true) {
+      return data["data"]; // contains authorization_url, reference
+    } else {
+      Get.snackbar("Funding Failed", data["message"] ?? "Something went wrong",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white);
+      throw Exception("Failed to fund wallet");
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyPayment(
+      String token, String reference) async {
+    final url = Uri.parse("$baseUrl/api/v2/wallet/verify-payment/$reference");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return data;
+    } else {
+      throw Exception(data["message"] ?? "Verification failed");
+    }
+  }
 
   /// Fetch wallet balance
-  Future<Map<String, dynamic>> getDataVariations(String token, String serviceId) async {
-    final url = Uri.parse("$baseUrl/api/v2/auth/data-variations?service_id=$serviceId");
+  Future<Map<String, dynamic>> getDataVariations(
+      String token, String serviceId) async {
+    final url =
+        Uri.parse("$baseUrl/api/v2/auth/data-variations?service_id=$serviceId");
 
     final response = await http.get(
       url,
@@ -562,134 +544,127 @@ Future<Map<String, dynamic>> verifyPayment(
     }
   }
 
+  Future<Map<String, dynamic>> buyData(
+    String token,
+    String requestId,
+    String phone,
+    String amount,
+    String serviceId,
+  ) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/buy-data");
 
-
-   Future<Map<String, dynamic>> buyData(
-  String token,
-  String requestId,
-  String phone,
-  String amount,
-  String serviceId,
-) async {
-
-  final url = Uri.parse("$baseUrl/api/v2/auth/buy-data");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-    body: jsonEncode({
-      "request_id": requestId,
-      "phone": phone,
-      "amount": amount,
-      "service_id": serviceId.toLowerCase()
-    }),
-  );
-
-  final data = jsonDecode(response.body);
-
-  if (response.statusCode == 200 && data["success"] == true) {
-    return data;
-  } else {
-    Get.snackbar(
-      "Failed",
-      data["message"] ?? "Something went wrong",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.redAccent,
-      colorText: Colors.white,
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "request_id": requestId,
+        "phone": phone,
+        "amount": amount,
+        "service_id": serviceId.toLowerCase()
+      }),
     );
 
-    throw Exception(data["message"]);
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["success"] == true) {
+      return data;
+    } else {
+      Get.snackbar(
+        "Failed",
+        data["message"] ?? "Something went wrong",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+
+      throw Exception(data["message"]);
+    }
   }
-}
 
+  Future<Map<String, dynamic>> verifyCustomer(
+    String token,
+    String customerId,
+    String serviceId,
+    String variationId,
+  ) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/verify-electric");
 
-
-   Future<Map<String, dynamic>> verifyCustomer(
-  String token,
-  String customerId,
-  String serviceId,
-  String variationId,
-) async {
-
-  final url = Uri.parse("$baseUrl/api/v2/auth/verify-electric");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-    body: jsonEncode({
-      "customer_id": customerId,
-      "service_id": serviceId,
-      "variation_id": variationId,
-    }),
-  );
-
-  final data = jsonDecode(response.body);
-
-  if (response.statusCode == 200 && data["success"] == true) {
-    return data;
-  } else {
-    Get.snackbar(
-      "Failed",
-      data["message"] ?? "Something went wrong",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.redAccent,
-      colorText: Colors.white,
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "customer_id": customerId,
+        "service_id": serviceId,
+        "variation_id": variationId,
+      }),
     );
 
-    throw Exception(data["message"]);
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["success"] == true) {
+      return data;
+    } else {
+      Get.snackbar(
+        "Failed",
+        data["message"] ?? "Something went wrong",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+
+      throw Exception(data["message"]);
+    }
   }
-}
 
+  Future<Map<String, dynamic>> verifycableCustomer(
+    String token,
+    String customerId,
+    String serviceId,
+    String variationId,
+  ) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/verify-cable");
 
-
-Future<Map<String, dynamic>> verifycableCustomer(
-  String token,
-  String customerId,
-  String serviceId,
-  String variationId,
-) async {
-
-  final url = Uri.parse("$baseUrl/api/v2/auth/verify-cable");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Authorization": "Bearer $token",
-      "Content-Type": "application/json",
-    },
-    body: jsonEncode({
-      "customer_id": customerId,
-      "service_id": serviceId,
-      "variation_id": variationId,
-    }),
-  );
-
-  final data = jsonDecode(response.body);
-
-  if (response.statusCode == 200 && data["success"] == true) {
-    return data;
-  } else {
-    Get.snackbar(
-      "Failed",
-      data["message"] ?? "Something went wrong",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.redAccent,
-      colorText: Colors.white,
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "customer_id": customerId,
+        "service_id": serviceId,
+        "variation_id": variationId,
+      }),
     );
 
-    throw Exception(data["message"]);
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["success"] == true) {
+      return data;
+    } else {
+      Get.snackbar(
+        "Failed",
+        data["message"] ?? "Something went wrong",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+
+      throw Exception(data["message"]);
+    }
   }
-}
 
   /// Fetch wallet balance
-  Future<Map<String, dynamic>> getCableVariations(String token, String serviceId) async {
-    final url = Uri.parse("$baseUrl/api/v2/auth/cable-variations?service_id=$serviceId");
+  Future<Map<String, dynamic>> getCableVariations(
+      String token, String serviceId) async {
+    final url = Uri.parse(
+        "$baseUrl/api/v2/auth/cable-variations?service_id=$serviceId");
 
     final response = await http.get(
       url,
@@ -708,5 +683,66 @@ Future<Map<String, dynamic>> verifycableCustomer(
     }
   }
 
+  Future<Map<String, dynamic>> getUserNotify({
+    required String token,
+  }) async {
+    final url = Uri.parse("$baseUrl/api/v2/notify/get-user-notify");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print("response api: $response");
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to fetch chat: ${response.body}");
+    }
+  }
+
+
+
+ Future<Map<String, dynamic>> verifyemail(
+    String token,
+    String email,
+
+  ) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/verify-email");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "email": email,
+     
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["success"] == true) {
+      return data;
+    } else {
+      Get.snackbar(
+        "Failed",
+        data["message"] ?? "Something went wrong",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+
+      throw Exception(data["message"]);
+    }
+  }
+
+
 
 }
+

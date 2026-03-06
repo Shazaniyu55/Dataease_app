@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:dataapp/assistant/assistant.dart';
+import 'package:dataapp/services/tokenServie.dart';
 import 'package:flutter/material.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -10,30 +12,37 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  // Dummy notifications data
-  List<Map<String, dynamic>> notifications = [
-    {
-      "id": 1,
-      "title": "Payment Successful",
-      "body": "Your data purchase of 1GB on Airtel was successful.",
-      "isRead": false,
-      "date": DateTime.now().subtract(Duration(minutes: 5))
-    },
-    {
-      "id": 2,
-      "title": "New Offer Available",
-      "body": "Get 2GB bonus data on MTN for 30 days!",
-      "isRead": false,
-      "date": DateTime.now().subtract(Duration(hours: 1))
-    },
-    {
-      "id": 3,
-      "title": "Wallet Updated",
-      "body": "Your wallet balance has been credited with ₦5000.",
-      "isRead": true,
-      "date": DateTime.now().subtract(Duration(days: 1))
-    },
-  ];
+  late VtuApi vtuApi;
+  late TokenService tokenService;
+
+  List<Map<String, dynamic>> notifications = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    tokenService = TokenService();
+    vtuApi = VtuApi();
+    fetchNotifications();
+  }
+
+  Future<void> fetchNotifications() async {
+    try {
+      String? token = await tokenService.getToken();
+
+      var result = await vtuApi.getUserNotify(token: token!);
+
+      setState(() {
+        notifications = List<Map<String, dynamic>>.from(result["data"]);
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching notifications: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   void markAsRead(int index) {
     setState(() {
@@ -44,9 +53,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => NotificationDetailScreen(
-          title: notifications[index]["title"],
-          body: notifications[index]["body"],
-          date: notifications[index]["date"],
+          title: notifications[index]["title"] ?? "",
+          body: notifications[index]["message"] ?? "",
+          date: DateTime.parse(notifications[index]["createdAt"]),
         ),
       ),
     );
@@ -56,6 +65,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     setState(() {
       notifications.removeAt(index);
     });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Notification deleted")),
     );
@@ -65,50 +75,69 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notifications", style: TextStyle(color: Colors.white),),
+        title: Text(
+          "Notifications",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.blueAccent,
       ),
-      body: ListView.builder(
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          final notification = notifications[index];
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : notifications.isEmpty
+              ? Center(child: Text("No notifications available"))
+              : ListView.builder(
+                  itemCount: notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = notifications[index];
 
-          return Dismissible(
-            key: Key(notification["id"].toString()),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 20),
-              color: Colors.redAccent,
-              child: Icon(Icons.delete, color: Colors.white),
-            ),
-            onDismissed: (direction) => deleteNotification(index),
-            child: ListTile(
-              onTap: () => markAsRead(index),
-              tileColor: notification["isRead"] ? Colors.grey[200] : Colors.white,
-              leading: Icon(
-                notification["isRead"] ? Icons.mark_email_read : Icons.notifications,
-                color: notification["isRead"] ? Colors.grey : Colors.blueAccent,
-              ),
-              title: Text(
-                notification["title"],
-                style: TextStyle(
-                  fontWeight: notification["isRead"] ? FontWeight.normal : FontWeight.bold,
+                    DateTime date =
+                        DateTime.parse(notification["createdAt"]);
+
+                    return Dismissible(
+                      key: Key(notification["_id"] ?? index.toString()),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: EdgeInsets.only(right: 20),
+                        color: Colors.redAccent,
+                        child: Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (direction) => deleteNotification(index),
+                      child: ListTile(
+                        onTap: () => markAsRead(index),
+                        tileColor: notification["isRead"] == true
+                            ? Colors.grey[200]
+                            : Colors.white,
+                        leading: Icon(
+                          notification["isRead"] == true
+                              ? Icons.mark_email_read
+                              : Icons.notifications,
+                          color: notification["isRead"] == true
+                              ? Colors.grey
+                              : Colors.blueAccent,
+                        ),
+                        title: Text(
+                          notification["title"] ?? "",
+                          style: TextStyle(
+                            fontWeight: notification["isRead"] == true
+                                ? FontWeight.normal
+                                : FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          notification["message"] ?? "",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: Text(
+                          "${date.hour}:${date.minute.toString().padLeft(2, '0')}",
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
-              subtitle: Text(
-                notification["body"],
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: Text(
-                "${notification["date"].hour}:${notification["date"].minute.toString().padLeft(2, '0')}",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }
@@ -129,7 +158,10 @@ class NotificationDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Notification Detail", style: TextStyle(color: Colors.white),),
+        title: Text(
+          "Notification Detail",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
