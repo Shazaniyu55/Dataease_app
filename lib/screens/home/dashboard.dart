@@ -11,6 +11,7 @@ import 'package:dataapp/screens/choosetoken/walletsummary.dart';
 import 'package:dataapp/screens/data.dart';
 import 'package:dataapp/screens/electricity.dart';
 import 'package:dataapp/screens/listvendors.dart';
+import 'package:dataapp/screens/notification.dart';
 import 'package:dataapp/screens/profile.dart';
 import 'package:dataapp/screens/setting.dart';
 import 'package:dataapp/services/tokenServie.dart';
@@ -189,8 +190,20 @@ class _DashboardState extends State<Dashboard> {
                     Get.to(const SettingsPage2());
                   },
                 ),
+
                 const SizedBox(
                   height: 10,
+                ),
+                ListTile(
+                  leading: const Icon(
+                    Icons.notification_add,
+                    color: Colors.blueAccent,
+                    size: 30,
+                  ),
+                  title: const Text("Notification"),
+                  onTap: () {
+                    Get.to(const NotificationScreen());
+                  },
                 ),
                 const SizedBox(
                   height: 10,

@@ -604,4 +604,48 @@ Future<Map<String, dynamic>> verifyPayment(
     throw Exception(data["message"]);
   }
 }
+
+
+
+   Future<Map<String, dynamic>> verifyCustomer(
+  String token,
+  String customerId,
+  String serviceId,
+  String variationId,
+) async {
+
+  final url = Uri.parse("$baseUrl/api/v2/auth/verify-electric");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode({
+      "customer_id": customerId,
+      "service_id": serviceId,
+      "variation_id": variationId,
+    }),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200 && data["success"] == true) {
+    return data;
+  } else {
+    Get.snackbar(
+      "Failed",
+      data["message"] ?? "Something went wrong",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+
+    throw Exception(data["message"]);
+  }
+}
+
+
+
 }

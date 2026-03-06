@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_final_fields, sized_box_for_whitespace, deprecated_member_use
+// ignore_for_file: prefer_final_fields, sized_box_for_whitespace, deprecated_member_use, unused_local_variable, avoid_print
 
 import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';

@@ -1,6 +1,5 @@
-// ignore_for_file: file_names, deprecated_member_use, use_super_parameters, sized_box_for_whitespace
+// ignore_for_file: file_names, deprecated_member_use, use_super_parameters, sized_box_for_whitespace, avoid_print
 
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/services/tokenServie.dart';
@@ -48,7 +47,7 @@ class _KycScreenState extends State<KycScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return Scaffold(
       backgroundColor: primaryBackgroundColor.value,
       appBar: AppBar(
