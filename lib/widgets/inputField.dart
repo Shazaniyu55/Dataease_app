@@ -317,7 +317,7 @@ class InputFieldsWithSeparateIcon extends StatelessWidget {
                   keyboardType: inputType ?? TextInputType.text,
                   inputFormatters: [
                     LengthLimitingTextInputFormatter(
-                        headerText.contains('Name') ? 12 : 40),
+                        headerText.contains('Name') ? 100 : 100),
                   ],
                   style: TextStyle(
                       fontSize: 14,
