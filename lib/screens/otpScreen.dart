@@ -85,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Forgot password",
+                        "Verify Email",
                         style: TextStyle(
                           color: headingColor.value,
                           fontSize: 24,
