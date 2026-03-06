@@ -26,24 +26,26 @@ class _CableScreenState extends State<CableScreen> {
 
   AppController appController = Get.find<AppController>();
   TextEditingController _amount = TextEditingController();
+  List<Map<String, dynamic>> _cablePlans = [];
+  String? _selectedPlan;
 
   String? _selectedMerchant;
+  Map<String, dynamic>? selectedPlanData;
   final List<Map<String, String>> _dropdownItemsAirtime = [
     {
-      "val": "1",
-      "name": "DSTV",
+      "val": "dstv",
+      "name": "dstv",
     },
     {
-      "val": "2",
-      "name": "GOTV",
+      "val": "gotv",
+      "name": "gotv",
     },
     {
-      "val": "3",
-      "name": "STARTIMES",
+      "val": "startimes",
+      "name": "startimes",
     },
   ];
 
-  String? _selectedPlan;
 
   final List<Map<String, String>> _dropdownItemsCablePlan = [
     {"val": "1", "plans": "GREAT WALL"},
@@ -67,12 +69,38 @@ class _CableScreenState extends State<CableScreen> {
     {"val": "19", "plans": "PREMIUM-FRENCH"},
   ];
 
+
+
   @override
   void initState() {
     super.initState();
     tokenService = TokenService();
     vtuApi = VtuApi();
     _initializeDashboard();
+  }
+
+      Future<void> fetchCablePlans(String serviceId) async {
+    try {
+      final token = await tokenService.getToken();
+
+      final response = await vtuApi.getCableVariations(token!, serviceId);
+
+      if (response["success"] == true) {
+        final plans = response["data"];
+
+        setState(() {
+  _cablePlans = List<Map<String, dynamic>>.from(plans)
+      .where((plan) => plan["availability"] == "Available" && plan["variation_id"] != null)
+      .toList();
+
+  // sort plans by price
+  _cablePlans.sort((a, b) => double.parse(a["reseller_price"] ?? '0')
+      .compareTo(double.parse(b["reseller_price"] ?? '0')));
+});
+      }
+    } catch (e) {
+      print("Error fetching plans: $e");
+    }
   }
 
   Future<void> _initializeDashboard() async {
@@ -213,7 +241,10 @@ class _CableScreenState extends State<CableScreen> {
                             onChanged: (value) {
                               setState(() {
                                 _selectedMerchant = value;
+                                _selectedPlan = null;
                               });
+
+                              fetchCablePlans(value!);
                             },
                           ),
                           const SizedBox(
@@ -227,12 +258,15 @@ class _CableScreenState extends State<CableScreen> {
                                 borderRadius: BorderRadius.circular(8.0),
                               ),
                             ),
-                            items: _dropdownItemsCablePlan.map((item) {
+                            items: _cablePlans.map((plan) {
+                              
                               return DropdownMenuItem<String>(
-                                value: item['val'],
+                                value: plan['variation_id']?.toString(),
+                                
                                 child: Row(
                                   children: <Widget>[
-                                    Text(item['plans']!),
+                                     Text(
+                                  "${plan["package_bouquet"]} - ₦${plan["price"]}"),
                                   ],
                                 ),
                               );
@@ -240,6 +274,11 @@ class _CableScreenState extends State<CableScreen> {
                             onChanged: (value) {
                               setState(() {
                                 _selectedPlan = value;
+
+                                selectedPlanData = _cablePlans.firstWhere(
+                                    (plan) =>
+                                        plan["variation_id"].toString() ==
+                                        value);
                               });
                             },
                           ),

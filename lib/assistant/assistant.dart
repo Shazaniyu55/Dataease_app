@@ -648,4 +648,65 @@ Future<Map<String, dynamic>> verifyPayment(
 
 
 
+Future<Map<String, dynamic>> verifycableCustomer(
+  String token,
+  String customerId,
+  String serviceId,
+  String variationId,
+) async {
+
+  final url = Uri.parse("$baseUrl/api/v2/auth/verify-cable");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode({
+      "customer_id": customerId,
+      "service_id": serviceId,
+      "variation_id": variationId,
+    }),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200 && data["success"] == true) {
+    return data;
+  } else {
+    Get.snackbar(
+      "Failed",
+      data["message"] ?? "Something went wrong",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+    );
+
+    throw Exception(data["message"]);
+  }
+}
+
+  /// Fetch wallet balance
+  Future<Map<String, dynamic>> getCableVariations(String token, String serviceId) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/cable-variations?service_id=$serviceId");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // print("Balance fetched successfully: ${response.body}");
+
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to fetch cable plans: ${response.body}");
+    }
+  }
+
+
 }
