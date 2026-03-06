@@ -214,7 +214,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              //UtilService().launchURL(context, '');
+                              UtilService().launchURL('https://data-ease-wb.vercel.app/terms');
                             },
                             child: Container(
                               color: Colors.transparent,
