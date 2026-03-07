@@ -90,7 +90,7 @@ class RequestAssistant {
 }
 
 class VtuApi {
-  final String baseUrl = "https://dataease-backend.vercel.app";
+  final String baseUrl = "http://localhost:2300";
 
   VtuApi();
 
@@ -743,6 +743,91 @@ class VtuApi {
   }
 
 
+Future<Map<String, dynamic>> verifyBettingCustomer(
+    String token,
+    String customerId,
+    String serviceId,
+  ) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/verify-betting");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "customer_id": customerId,
+        "service_id": serviceId
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data["success"] == true) {
+      return data;
+    } else {
+      Get.snackbar(
+        "Failed",
+        data["message"] ?? "Something went wrong",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+
+      throw Exception(data["message"]);
+    }
+  }
+
+  Future<Map<String, dynamic>> getVendorConversation({
+    required String token,
+    required String conversationId,
+  }) async {
+    final url = Uri.parse("$baseUrl/api/v2/chat/vendor/conversation/$conversationId");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to fetch chat: ${response.body}");
+    }
+  }
+
+
+ Future<Map<String, dynamic>> sendVendorMessage({
+    required String token,
+    required String senderId,
+    required String receiverId,
+    required String message,
+  }) async {
+    final url = Uri.parse("$baseUrl/api/v2/chat/send-vendor");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: json.encode({
+        "senderId": senderId,
+        "receiverId": receiverId,
+        "message": message,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to send message: ${response.body}");
+    }
+  }
 
 }
 

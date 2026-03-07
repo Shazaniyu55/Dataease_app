@@ -1,6 +1,8 @@
 // ignore_for_file: non_constant_identifier_names, sort_child_properties_last
 
+import 'package:dataapp/screens/chatvendor.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ListOfVendors extends StatefulWidget {
   const ListOfVendors({super.key});
@@ -21,21 +23,7 @@ class _ListOfVendorsState extends State<ListOfVendors> {
           'https://res.cloudinary.com/damufjozr/image/upload/v1717752047/avatar_nwakgu.png',
       'isOnline': true,
       'messageText': 'Patronage'
-    },
-    {
-      'id': '2',
-      'name': 'Jane Doe',
-      'imageUrl': 'https://randomuser.me/api/portraits/women/1.jpg',
-      'isOnline': false,
-      'messageText': 'Available on request'
-    },
-    {
-      'id': '3',
-      'name': 'John Smith',
-      'imageUrl': 'https://randomuser.me/api/portraits/men/2.jpg',
-      'isOnline': true,
-      'messageText': 'Ready for orders'
-    },
+    }
     // Add more users as needed
   ];
 
@@ -95,8 +83,11 @@ class _ListOfVendorsState extends State<ListOfVendors> {
               ),
             ),
             ElevatedButton(
-                onPressed: () {},
-                child: const Text("Send request"),
+                onPressed: () {
+                  Get.to(() =>
+                      ChatVendor(profilePic: imageUrl, fullName: name));
+                },
+                child: const Text("Chat"),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.blue, // Text color
@@ -118,18 +109,7 @@ class _ListOfVendorsState extends State<ListOfVendors> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        title: Form(
-          child: TextFormField(
-            controller: _search,
-            decoration: const InputDecoration(
-              labelText: "Search For vendors",
-              labelStyle: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            onFieldSubmitted: (String _) {
-              setState(() {});
-            },
-          ),
-        ),
+        title: Text("Data Vendors", style: TextStyle(color: Colors.white),),
       ),
       body: ListView.builder(
         itemCount: users.length,

@@ -11,7 +11,6 @@ import 'package:dataapp/screens/choosetoken/transactionsmmary.dart';
 import 'package:dataapp/screens/choosetoken/walletsummary.dart';
 import 'package:dataapp/screens/data.dart';
 import 'package:dataapp/screens/electricity.dart';
-import 'package:dataapp/screens/giftcard.dart';
 import 'package:dataapp/screens/giftcardMarket.dart';
 import 'package:dataapp/screens/listvendors.dart';
 import 'package:dataapp/screens/notification.dart';

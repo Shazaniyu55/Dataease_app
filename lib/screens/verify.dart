@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_new, file_names, use_super_parameters, deprecated_member_use, strict_top_level_inference
+// ignore_for_file: unnecessary_new, file_names, use_super_parameters, deprecated_member_use, strict_top_level_inference, avoid_print
 
 import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';
