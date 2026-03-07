@@ -51,6 +51,13 @@ Future<void> handlePayment(String token, String amount) async {
       middleText: "Click below after completing payment",
       actions: [
         ElevatedButton(
+            style: ElevatedButton.styleFrom(
+    backgroundColor: primaryColor.value,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    minimumSize: const Size(double.infinity, 50), // full width, 50 height
+  ),
           onPressed: () async {
             try {
               final verification = await vtuApi.verifyPayment(token, reference);
