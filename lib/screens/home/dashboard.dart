@@ -4,12 +4,15 @@ import 'package:dataapp/assistant/assistant.dart';
 import 'package:dataapp/constant/colors.dart';
 import 'package:dataapp/controller/appController.dart';
 import 'package:dataapp/screens/airtime.dart';
+import 'package:dataapp/screens/betting.dart';
 import 'package:dataapp/screens/cable.dart';
 import 'package:dataapp/screens/chat.dart';
 import 'package:dataapp/screens/choosetoken/transactionsmmary.dart';
 import 'package:dataapp/screens/choosetoken/walletsummary.dart';
 import 'package:dataapp/screens/data.dart';
 import 'package:dataapp/screens/electricity.dart';
+import 'package:dataapp/screens/giftcard.dart';
+import 'package:dataapp/screens/giftcardMarket.dart';
 import 'package:dataapp/screens/listvendors.dart';
 import 'package:dataapp/screens/notification.dart';
 import 'package:dataapp/screens/profile.dart';
@@ -306,39 +309,46 @@ class _DashboardState extends State<Dashboard> {
                               topRight: Radius.circular(20.0),
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 60),
-                              Wrap(
-                                alignment: WrapAlignment.spaceBetween,
-                                runSpacing: 15,
-                                children: [
-                                  _buildCard(
-                                      context, "images/phone.png", "Airtime",
-                                      () {
-                                    Get.to(const AirtimeScreen());
-                                  }),
-                                  _buildCard(context, "images/data.png", "Data",
-                                      () {
-                                    Get.to(const DataScreen());
-                                  }),
-                                  _buildCard(
-                                      context, "images/light.png", "Electric",
-                                      () {
-                                    Get.to(const ElectricScreen());
-                                  }),
-                                  _buildCard(context, "images/tv.png", "Cable",
-                                      () {
-                                    Get.to(const CableScreen());
-                                  }),
-                                  // _buildCard(context, "images/bet.png", "Betting",
-                                  //     () {
-                                  //   Get.to(const BettingScreen());
-                                  // }),
-                                ],
-                              ),
-                            ],
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 60),
+                                Wrap(
+                                  alignment: WrapAlignment.spaceBetween,
+                                  runSpacing: 15,
+                                  children: [
+                                    _buildCard(
+                                        context, "images/phone.png", "Airtime",
+                                        () {
+                                      Get.to(const AirtimeScreen());
+                                    }),
+                                    _buildCard(context, "images/data.png", "Data",
+                                        () {
+                                      Get.to(const DataScreen());
+                                    }),
+                                    _buildCard(
+                                        context, "images/light.png", "Electric",
+                                        () {
+                                      Get.to(const ElectricScreen());
+                                    }),
+                                    _buildCard(context, "images/tv.png", "Cable",
+                                        () {
+                                      Get.to(const CableScreen());
+                                    }),
+                                    _buildCard(context, "images/bet.png", "Betting",
+                                        () {
+                                      Get.to(const BettingScreen());
+                                    }),
+                            
+                                    _buildCard(context, "images/coin.png", "Gift cards",
+                                        () {
+                                      Get.to(const GiftCardMarketplace());
+                                    }),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
