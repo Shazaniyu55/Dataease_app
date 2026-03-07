@@ -32,6 +32,8 @@ class AppController extends GetxController {
   var userName = ''.obs;
   var userId = ''.obs;
   var email = ''.obs;
+  var oldpass = ''.obs;
+  var newpass = ''.obs;
   var img = ''.obs;
   var acctType = ''.obs;
   var phone = ''.obs;

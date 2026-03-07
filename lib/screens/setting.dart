@@ -6,6 +6,7 @@ import 'package:dataapp/screens/home/dashboard.dart';
 import 'package:dataapp/screens/kycScreen.dart';
 import 'package:dataapp/screens/otpScreen.dart';
 import 'package:dataapp/screens/profile.dart';
+import 'package:dataapp/screens/updatePassword.dart';
 import 'package:dataapp/screens/verify.dart';
 import 'package:dataapp/widgets/commonwidget.dart';
 import 'package:flutter/cupertino.dart';
@@ -68,6 +69,18 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           Colors.blue, // Set your desired icon color here
                       trailing: Icons.arrow_forward_ios_rounded,
                       destinationPage: VerifyEmalScreen() // Icon on the right side
+                      ),
+
+                      const Divider(),
+
+
+                       const _CustomListTile(
+                      title: "Update Password",
+                      icon: Icons.lock_clock_outlined,
+                      iconColor:
+                          Colors.blue, // Set your desired icon color here
+                      trailing: Icons.arrow_forward_ios_rounded,
+                      destinationPage: UpdatePasswordScreen() // Icon on the right side
                       ),
                  
                 ],

@@ -90,7 +90,7 @@ class RequestAssistant {
 }
 
 class VtuApi {
-  final String baseUrl = "https://dataease-backend.vercel.app";
+  final String baseUrl = "http://localhost:2300";
 
   VtuApi();
 
@@ -826,6 +826,33 @@ Future<Map<String, dynamic>> verifyBettingCustomer(
       return json.decode(response.body);
     } else {
       throw Exception("Failed to send message: ${response.body}");
+    }
+  }
+
+
+   Future<Map<String, dynamic>> updateUserPassword({
+    required String token,
+    required String password,
+    required String oldpassword
+  }) async {
+    final url = Uri.parse("$baseUrl/api/v2/auth/update-password");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: json.encode({
+        "newPassword": password,
+        "oldPassword": oldpassword
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception("Failed to update message: ${response.body}");
     }
   }
 
